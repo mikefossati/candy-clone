@@ -1,0 +1,12 @@
+com/example/candycrush/dto/MoveRequest.class
+com/example/candycrush/controller/PlayerController.class
+com/example/candycrush/model/Player.class
+com/example/candycrush/repository/PlayerRepository.class
+com/example/candycrush/model/Game.class
+com/example/candycrush/model/Tile.class
+com/example/candycrush/service/GameService.class
+com/example/candycrush/CandycrushApplication.class
+com/example/candycrush/controller/LeaderboardEntry.class
+com/example/candycrush/dto/NewGameRequest.class
+com/example/candycrush/repository/GameRepository.class
+com/example/candycrush/controller/GameController.class
