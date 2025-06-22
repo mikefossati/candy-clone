@@ -1,6 +1,7 @@
 /Users/mike/CascadeProjects/candy-crush-clone/backend/src/main/java/com/example/candycrush/controller/GameController.java
 /Users/mike/CascadeProjects/candy-crush-clone/backend/src/main/java/com/example/candycrush/controller/LeaderboardEntry.java
 /Users/mike/CascadeProjects/candy-crush-clone/backend/src/main/java/com/example/candycrush/controller/PlayerController.java
+/Users/mike/CascadeProjects/candy-crush-clone/backend/src/main/java/com/example/candycrush/dto/GameResponse.java
 /Users/mike/CascadeProjects/candy-crush-clone/backend/src/main/java/com/example/candycrush/dto/MoveRequest.java
 /Users/mike/CascadeProjects/candy-crush-clone/backend/src/main/java/com/example/candycrush/dto/NewGameRequest.java
 /Users/mike/CascadeProjects/candy-crush-clone/backend/src/main/java/com/example/candycrush/model/Game.java

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MoveValidationTest {
-    private GameService service;
+    GameService service;
     private Tile[][] board;
 
     @BeforeEach
@@ -78,14 +78,14 @@ public class MoveValidationTest {
     }
 
     private void printBoard(String label) {
-        System.out.println(label);
+        // removed logging label);
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 System.out.print(board[i][j].getColor().charAt(0) + " ");
             }
-            System.out.println();
+            // removed logging );
         }
-        System.out.println();
+        // removed logging );
     }
 
     @Test
@@ -104,7 +104,7 @@ public class MoveValidationTest {
         // Swap back for isValidMove call
         temp = board[0][4]; board[0][4] = board[0][5]; board[0][5] = temp;
         boolean valid = callIsValidMove(0,4,0,5);
-        System.out.println("isValidMove result (horizontal edge): " + valid);
+        // removed logging "isValidMove result (horizontal edge): " + valid);
         assertTrue(valid);
     }
 
@@ -124,7 +124,7 @@ public class MoveValidationTest {
         // Swap back for isValidMove call
         temp = board[4][7]; board[4][7] = board[5][7]; board[5][7] = temp;
         boolean valid = callIsValidMove(4,7,5,7);
-        System.out.println("isValidMove result (vertical edge): " + valid);
+        // removed logging "isValidMove result (vertical edge): " + valid);
         assertTrue(valid);
     }
 

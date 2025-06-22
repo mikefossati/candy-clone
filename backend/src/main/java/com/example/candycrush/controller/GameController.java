@@ -3,6 +3,8 @@ package com.example.candycrush.controller;
 import com.example.candycrush.dto.MoveRequest;
 import com.example.candycrush.dto.NewGameRequest;
 import com.example.candycrush.model.Game;
+import com.example.candycrush.dto.GameResponse;
+import com.example.candycrush.model.Tile;
 import com.example.candycrush.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,18 +20,33 @@ public class GameController {
     private GameService gameService;
 
     @PostMapping
-    public Game startNewGame(@RequestBody NewGameRequest request) {
-        return gameService.createNewGame(request.getPlayerId());
+    public GameResponse startNewGame(@RequestBody NewGameRequest request) {
+        Game game = gameService.createNewGame(request.getPlayerId());
+        Tile[][] board = parseBoard(game.getBoard());
+        return new GameResponse(game.getId(), game.getPlayer(), board, game.getScore());
     }
 
     @GetMapping("/{id}")
-    public Game getGameState(@PathVariable Long id) {
-        return gameService.getGameState(id);
+    public GameResponse getGameState(@PathVariable Long id) {
+        Game game = gameService.getGameState(id);
+        Tile[][] board = parseBoard(game.getBoard());
+        return new GameResponse(game.getId(), game.getPlayer(), board, game.getScore());
     }
 
     @PostMapping("/{id}/moves")
-    public Game makeMove(@PathVariable Long id, @RequestBody MoveRequest request) {
-        return gameService.makeMove(id, request.getFromRow(), request.getFromCol(), request.getToRow(), request.getToCol());
+    public GameResponse makeMove(@PathVariable Long id, @RequestBody MoveRequest request) {
+        Game game = gameService.makeMove(id, request.getFromRow(), request.getFromCol(), request.getToRow(), request.getToCol());
+        Tile[][] board = parseBoard(game.getBoard());
+        return new GameResponse(game.getId(), game.getPlayer(), board, game.getScore());
+    }
+
+    private Tile[][] parseBoard(String boardJson) {
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.readValue(boardJson, Tile[][].class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse board JSON", e);
+        }
     }
 
     @Autowired

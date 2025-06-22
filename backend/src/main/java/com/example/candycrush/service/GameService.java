@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+
 import java.util.Random;
 
 @Service
@@ -19,48 +19,76 @@ public class GameService {
     private static final int BOARD_SIZE = 8;
     private static final String[] COLORS = {"RED", "BLUE", "GREEN", "YELLOW", "PURPLE", "ORANGE"};
 
-    @Autowired
-    private GameRepository gameRepository;
+    private final GameRepository gameRepository;
+    private final PlayerRepository playerRepository;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    private PlayerRepository playerRepository;
+    public GameService(GameRepository gameRepository, PlayerRepository playerRepository) {
+        this.gameRepository = gameRepository;
+        this.playerRepository = playerRepository;
+        this.objectMapper = new ObjectMapper();
+    }
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    /**
+     * Public no-arg constructor for test use only.
+     */
+    public GameService() {
+        this.gameRepository = null;
+        this.playerRepository = null;
+        this.objectMapper = new ObjectMapper();
+    }
 
+    /**
+     * Creates a new game for the given player ID.
+     * @param playerId the player ID
+     * @return the created Game
+     */
     public Game createNewGame(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found with id: " + playerId));
-
         Game game = new Game(player);
         Tile[][] board = generateNewBoard();
         try {
             String boardJson = objectMapper.writeValueAsString(board);
             game.setBoard(boardJson);
         } catch (JsonProcessingException e) {
-            // In a real app, handle this more gracefully
             throw new RuntimeException("Error processing board state", e);
         }
-
         return gameRepository.save(game);
     }
 
+    /**
+     * Retrieves the game state for the given game ID.
+     * @param gameId the game ID
+     * @return the Game
+     */
     public Game getGameState(Long gameId) {
         return gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with id: " + gameId));
     }
 
+    /**
+     * Makes a move on the board for the given game ID and coordinates.
+     * @param gameId the game ID
+     * @param fromRow source row
+     * @param fromCol source column
+     * @param toRow destination row
+     * @param toCol destination column
+     * @return updated Game
+     */
     public Game makeMove(Long gameId, int fromRow, int fromCol, int toRow, int toCol) {
         Game game = getGameState(gameId);
         try {
             Tile[][] board = objectMapper.readValue(game.getBoard(), Tile[][].class);
             if (!isValidMove(board, fromRow, fromCol, toRow, toCol)) {
-                System.out.println("[makeMove] Invalid move attempted, board remains unchanged.");
+                // removed logging "[makeMove] Invalid move attempted, board remains unchanged.");
                 return game; // Do not mutate or save, return current state
             }
             // Swap tiles
-            System.out.println("[makeMove] Swapping tiles: (" + fromRow + "," + fromCol + ") <-> (" + toRow + "," + toCol + ")");
+            // removed logging "[makeMove] Swapping tiles: (" + fromRow + "," + fromCol + ") <-> (" + toRow + "," + toCol + ")");
             swap(board, fromRow, fromCol, toRow, toCol);
-            printBoardDebug(board);
+            // removed logging board);
 
             int totalScore = game.getScore();
             boolean foundMatch;
@@ -69,12 +97,12 @@ public class GameService {
                 foundMatch = hasAnyMatch(matched);
                 if (foundMatch) {
                     int cleared = clearMatches(board, matched);
-                    System.out.println("[makeMove] Cleared " + cleared + " tiles:");
-                    printBoardDebug(board);
+                    // removed logging "[makeMove] Cleared " + cleared + " tiles:");
+                    // removed logging board);
                     totalScore += cleared * 10; // 10 points per cleared tile
                     cascadeTiles(board);
-                    System.out.println("[makeMove] After cascade:");
-                    printBoardDebug(board);
+                    // removed logging "[makeMove] After cascade:");
+                    // removed logging board);
                 }
             } while (foundMatch);
 
@@ -86,21 +114,24 @@ public class GameService {
         }
     }
 
+    /**
+     * Checks if a move is valid (adjacent and results in a match).
+     */
     boolean isValidMove(Tile[][] board, int fromRow, int fromCol, int toRow, int toCol) {
-        System.out.println("\n[isValidMove] Checking move: (" + fromRow + "," + fromCol + ") <-> (" + toRow + "," + toCol + ")");
+        // removed logging "\n[isValidMove] Checking move: (" + fromRow + "," + fromCol + ") <-> (" + toRow + "," + toCol + ")");
         // Only adjacent tiles
         if (Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) != 1) {
-            System.out.println("[isValidMove] Tiles are not adjacent. Move invalid.");
+            // removed logging "[isValidMove] Tiles are not adjacent. Move invalid.");
             return false;
         }
         // Work on a deep copy so the original board is not mutated
         Tile[][] boardCopy = deepCopyBoard(board);
-        System.out.println("[isValidMove] Board before swap:");
-        printBoardDebug(boardCopy);
+        // removed logging "[isValidMove] Board before swap:");
+        // removed logging boardCopy);
         boolean[][] before = findMatches(boardCopy);
         swap(boardCopy, fromRow, fromCol, toRow, toCol);
-        System.out.println("[isValidMove] Board after swap:");
-        printBoardDebug(boardCopy);
+        // removed logging "[isValidMove] Board after swap:");
+        // removed logging boardCopy);
         boolean[][] after = findMatches(boardCopy);
         // Only valid if swap creates a new match anywhere
         boolean valid = false;
@@ -111,32 +142,25 @@ public class GameService {
                 }
             }
         }
-        System.out.println("[isValidMove] Move valid? " + valid);
+        // removed logging "[isValidMove] Move valid? " + valid);
         return valid;
     }
 
-    // Helper to print the board for debugging
-    private void printBoardDebug(Tile[][] board) {
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                if (board[i][j] == null) {
-                    System.out.print(". ");
-                } else {
-                    String c = board[i][j].getColor();
-                    System.out.print((c.length() > 0 ? c.charAt(0) : '.') + " ");
-                }
-            }
-            System.out.println();
-        }
-    }
 
+
+    /**
+     * Swaps two tiles on the board.
+     */
     private void swap(Tile[][] board, int r1, int c1, int r2, int c2) {
-        System.out.println("[swap] Swapping (" + r1 + "," + c1 + ") <-> (" + r2 + "," + c2 + ")");
+        // removed logging "[swap] Swapping (" + r1 + "," + c1 + ") <-> (" + r2 + "," + c2 + ")");
         Tile temp = board[r1][c1];
         board[r1][c1] = board[r2][c2];
         board[r2][c2] = temp;
     }
 
+    /**
+     * Finds all matches (3 or more in a row/column) on the board.
+     */
     boolean[][] findMatches(Tile[][] board) {
         boolean[][] matched = new boolean[BOARD_SIZE][BOARD_SIZE];
         // Horizontal
@@ -168,6 +192,9 @@ public class GameService {
         return matched;
     }
 
+    /**
+     * Returns true if any matches are found on the board.
+     */
     private boolean hasAnyMatch(boolean[][] matched) {
         for (int i = 0; i < BOARD_SIZE; i++)
             for (int j = 0; j < BOARD_SIZE; j++)
@@ -175,12 +202,15 @@ public class GameService {
         return false;
     }
 
+    /**
+     * Clears matched tiles and returns the number cleared.
+     */
     int clearMatches(Tile[][] board, boolean[][] matched) {
         int cleared = 0;
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
                 if (matched[i][j]) {
-                    System.out.println("[clearMatches] Clearing tile at (" + i + "," + j + ")");
+                    // removed logging "[clearMatches] Clearing tile at (" + i + "," + j + ")");
                     board[i][j] = null;
                     cleared++;
                 }
@@ -189,6 +219,9 @@ public class GameService {
         return cleared;
     }
 
+    /**
+     * Cascades tiles down to fill empty spaces and fills from the top.
+     */
     void cascadeTiles(Tile[][] board) {
         Random random = new Random();
         for (int col = 0; col < BOARD_SIZE; col++) {
@@ -197,7 +230,7 @@ public class GameService {
             for (int row = 0; row < BOARD_SIZE; row++) {
                 before.append(board[row][col] == null ? "." : board[row][col].getColor().charAt(0)).append(" ");
             }
-            System.out.println("[cascadeTiles] Col " + col + " BEFORE: " + before.toString());
+            // removed logging "[cascadeTiles] Col " + col + " BEFORE: " + before.toString());
 
             // Step 1: Collect all non-null tiles in this column (from bottom to top)
             java.util.List<Tile> nonNullTiles = new java.util.ArrayList<>();
@@ -215,7 +248,7 @@ public class GameService {
             // Step 3: Fill remaining cells at the top with new tiles
             for (; writeRow >= 0; writeRow--) {
                 board[writeRow][col] = new Tile(COLORS[random.nextInt(COLORS.length)]);
-                System.out.println("[cascadeTiles] New tile at (" + writeRow + "," + col + ") color: " + board[writeRow][col].getColor());
+                // removed logging "[cascadeTiles] New tile at (" + writeRow + "," + col + ") color: " + board[writeRow][col].getColor());
             }
 
             // Debug: Print column after cascading
@@ -223,10 +256,13 @@ public class GameService {
             for (int r = 0; r < BOARD_SIZE; r++) {
                 after.append(board[r][col] == null ? "." : board[r][col].getColor().charAt(0)).append(" ");
             }
-            System.out.println("[cascadeTiles] Col " + col + " AFTER:  " + after.toString());
+            // removed logging "[cascadeTiles] Col " + col + " AFTER:  " + after.toString());
         }
     }
 
+    /**
+     * Deep copies a board.
+     */
     private Tile[][] deepCopyBoard(Tile[][] board) {
         int n = board.length;
         int m = board[0].length;
@@ -246,6 +282,9 @@ public class GameService {
         return copy;
     }
 
+    /**
+     * Generates a new board with no initial matches.
+     */
     private Tile[][] generateNewBoard() {
         Tile[][] board = new Tile[BOARD_SIZE][BOARD_SIZE];
         Random random = new Random();
@@ -269,8 +308,8 @@ public class GameService {
         // Optional: Debug check for accidental matches
         boolean[][] matched = findMatches(board);
         if (hasAnyMatch(matched)) {
-            System.out.println("[generateNewBoard] WARNING: Initial board has matches!");
-            printBoardDebug(board);
+            // removed logging "[generateNewBoard] WARNING: Initial board has matches!");
+            // removed logging board);
         }
         return board;
     }
